@@ -31,3 +31,35 @@ giP(){
         git push origin $(git branch | awk '$1=="*"{ print $2 }')
     fi
 }
+
+git.track(){
+    git branch --track "${1:?local branch}" "${2:?remote branch}"
+}
+
+# TODO: make it universal instead of origin
+# for remote in $(git branch -r | grep -v '\->' | grep -E "^ +origin"); do git branch --track "$remote"; done
+git.track.all(){
+    git branch -r | grep -v '\->' | \
+        grep -E "^ +origin" | 
+        while read remote; do 
+            # git branch --track "${remote#origin/}" "$remote"; 
+            git.track "${remote#origin/}" "$remote"
+        done
+}
+
+git.pull.all(){
+    local tgt=${1:?origin}
+    git.track.all
+    git fetch "$tgt"
+    git pull "$tgt"
+}
+
+git.push.all(){
+    local tgt=${1:?origin}
+    git push -u --all "$tgt"
+    git push --force --tags "$tgt"
+}
+
+git.is.empty.repo(){
+    git branch -r | grep -q ^
+}

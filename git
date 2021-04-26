@@ -1,5 +1,12 @@
 #! /usr/bin/env bash
 
+# shellcheck shell=sh disable=SC2039
+
+# author:       Li Junhao           l@x-cmd.com    edwinjhlee.github.io
+# maintainer:   Li Junhao
+
+GIT_BIN="$(command -v git)"
+
 # From el-repo
 
 alias gis="git status"
@@ -63,3 +70,86 @@ git.push.all(){
 git.is.empty.repo(){
     git branch -r | grep -q ^
 }
+
+
+git(){
+    _git_handle "$@"
+    if [ $? -eq 127 ]; then
+        $GIT_BIN ${1:+"$@"}
+    fi
+}
+
+_git_handle(){
+    local op
+    if [ $# -eq 0 ]; then
+        op=help
+    else
+        op="${1}"
+        shift
+    fi
+
+    case "$op" in
+        a)
+            git add ${1:+"$@"} ;;
+        ca)             
+            _tig_handle commit -a ${1:+"$@"}
+            return ;;
+        c|commit|cm)    
+            (
+                for i in "$@"; do
+                    case "$i" in
+                        -h|--help) 
+                            $GIT_BIN commit --help
+                            return 0 ;;
+                        *) ;;
+                    esac
+                done
+            )
+
+            if : Pre commit code; then
+                # Pre hook
+                if $GIT_BIN commit ${1:+"$@"}; then
+                    : Post commit hook  
+                else
+                    :
+                fi
+            fi
+            return      ;;
+        pa|pull-all)    ;;
+        Pa|push-all)    ;;
+        ta|track-all)   ;;
+        push)           
+            (
+                for i in "$@"; do
+                    case "$i" in
+                        -h|--help) 
+                            git push --help
+                            return 0 ;;
+                        *) ;;
+                    esac
+                done
+            )
+
+            if : Pre commit code; then
+                # Pre hook
+                if $GIT_BIN push ${1:+"$@"}; then
+                    : Post commit hook  
+                else
+                    :
+                fi
+            fi
+            return ;;
+        github)         
+            $GIT_BIN clone "git@github.com:${1:?Please provide name like x-bash/tig}.git"
+            return ;;
+        gitee)          
+            $GIT_BIN clone "git@gitee.com:${1:?Please provide name like x-bash/tig}.git"  
+            return ;;
+        gitlab)         
+            $GIT_BIN clone "git@gitlab.com:${1:?Please provide name like x-bash/tig}.git" 
+            return;;
+    esac
+
+    return 127
+}
+

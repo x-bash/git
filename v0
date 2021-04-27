@@ -131,7 +131,7 @@ _git_handle(){
             # Using complete json to anaysis.
             $GIT_BIN clone "git@github.com:${1:?"Please provide name like 'x-bash/git'"}.git"
             return ;;
-        gitee)
+        gitee)          
             $GIT_BIN clone "git@gitee.com:${1:?"Please provide name like 'x-bash/git'"}.git"  
             return ;;
         gitlab)         

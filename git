@@ -40,10 +40,24 @@ giP(){
 }
 
 git(){
-    _git_handle "$@"
-    if [ $? -eq 127 ]; then
-        $GIT_BIN ${1:+"$@"}
+    if git --version 1>/dev/null; then
+        git(){
+            _git_handle "$@"
+            if [ $? -eq 127 ]; then
+                $GIT_BIN ${1:+"$@"}
+            fi
+        }
+        git ${1:+"$@"}
+    else
+        echo "Git uninstalled. Please setup git command." >&2
     fi
+}
+
+git_setup(){
+    : yum install -y git
+    : apt install -y git
+    : apk add git
+    : brew install git
 }
 
 _git_handle(){
@@ -59,9 +73,9 @@ _git_handle(){
         a)
             git add ${1:+"$@"} ;;
         ca)             
-            _tig_handle commit -a ${1:+"$@"}
+            _git_handle commit -a ${1:+"$@"}
             return ;;
-        c|commit|cm)    
+        c|commit|cm)
             (
                 for i in "$@"; do
                     case "$i" in
@@ -149,6 +163,27 @@ _git_handle(){
             return;;
         is-empty-repo)
             git branch -r | grep -q ^ ;;
+        help|-h|--help)
+            cat <<A
+git     cmd extension
+
+Extension Subcommand:
+    a                   alias for 'git add'
+    c|cm                alias for 'git commit'
+    ca                  alias for 'git commit -a'
+    pa|push-all <name>  push all branch and all tags to name, name default is origin
+    pl|pull-all <name>  pull all branch and all tags to name, name default is origin
+
+    track               alias for 'git branch --track'
+    track-all|ta        track all branch from origin
+    github              git github <org-name>/<repo-name>
+    github-http         git github <org-name>/<repo-name>
+    gitee               git github <org-name>/<repo-name>
+    gitee-http          git github <org-name>/<repo-name>
+    is-empty-repo       is empty repo
+A
+            ;;
+
     esac
 
     return 127
